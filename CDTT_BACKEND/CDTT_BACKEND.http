@@ -1,0 +1,6 @@
+@CDTT_BACKEND_HostAddress = http://localhost:5210
+
+GET {{CDTT_BACKEND_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

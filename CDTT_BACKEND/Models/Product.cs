@@ -17,7 +17,8 @@ namespace CDTT_BACKEND.Models
 
         public decimal Price { get; set; }
 
-        // Ảnh đại diện chính
+        // Bổ sung nvarchar(max) để chứa đủ chuỗi Base64 ảnh siêu dài
+        [Column(TypeName = "nvarchar(max)")]
         public string thumbnail { get; set; } = string.Empty;
 
         public int Quantity { get; set; }

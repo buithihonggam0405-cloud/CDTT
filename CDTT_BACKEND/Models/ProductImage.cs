@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace CDTT_BACKEND.Models
 {
@@ -19,6 +20,7 @@ namespace CDTT_BACKEND.Models
 
         // Quan hệ Navigation với Product (Trường FK phải trùng với tên ở trên)
         [ForeignKey("product_id")]
+        [JsonIgnore]
         public Product? Product { get; set; }
     }
 }

@@ -1,5 +1,7 @@
-﻿//biến thể sản phẩm- kho và giá
+//biến thể sản phẩm- kho và giá
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace CDTT_BACKEND.Models
 {
@@ -22,6 +24,8 @@ namespace CDTT_BACKEND.Models
 		public string image_url { get; set; } = string.Empty;
 
 		// Quan hệ với Product gốc
+		[ForeignKey("product_id")]
+		[JsonIgnore]
 		public Product? Product { get; set; }
 
 		// Quan hệ Nhiều - Nhiều với ProductAttributeValue

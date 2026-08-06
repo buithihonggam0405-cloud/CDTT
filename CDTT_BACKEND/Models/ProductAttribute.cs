@@ -1,5 +1,7 @@
-﻿//Thuộc tính sản phẩm màu sắc-kích cỡ
+//Thuộc tính sản phẩm màu sắc-kích cỡ
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace CDTT_BACKEND.Models
 {
@@ -13,6 +15,8 @@ namespace CDTT_BACKEND.Models
 		public string Name { get; set; } = string.Empty;
 
 		// Quan hệ với Product gốc
+		[ForeignKey("product_id")]
+		[JsonIgnore]
 		public Product? Product { get; set; }
 
 		// Danh sách các giá trị thuộc tính (vd: Màu sắc -> Đen, Trắng, Đỏ)

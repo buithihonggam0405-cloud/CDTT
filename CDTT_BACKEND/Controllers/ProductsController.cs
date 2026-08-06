@@ -32,7 +32,14 @@ namespace CDTT_BACKEND.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _context.Products.FindAsync(id);
+            var product = await _context.Products
+                .Include(p => p.Images)
+                .Include(p => p.Attributes)
+                    .ThenInclude(a => a.AttributeValues)
+                .Include(p => p.Variants)
+                    .ThenInclude(v => v.AttributeValues)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
             {
@@ -43,15 +50,29 @@ namespace CDTT_BACKEND.Controllers
         }
 
         // PUT: api/Products/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
         {
             if (id != product.Id)
             {
-                return BadRequest();
+                return BadRequest(new { message = "ID sản phẩm không trùng khớp." });
             }
 
+            // Bỏ qua validation các quan hệ phụ khi cập nhật
+            ModelState.Remove("Category");
+            ModelState.Remove("Images");
+            ModelState.Remove("Attributes");
+            ModelState.Remove("Variants");
+            ModelState.Remove("CartItems");
+            ModelState.Remove("OrderDetails");
+            ModelState.Remove("Reviews");
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            product.Category = null; // Tránh EF cố tình chèn/sửa Category
             _context.Entry(product).State = EntityState.Modified;
 
             try
@@ -69,19 +90,61 @@ namespace CDTT_BACKEND.Controllers
                     throw;
                 }
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi cập nhật SQL", error = ex.InnerException?.Message ?? ex.Message });
+            }
 
             return NoContent();
         }
 
         // POST: api/Products
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<Product>> PostProduct([FromBody] Product product)
         {
-            _context.Products.Add(product);
-            await _context.SaveChangesAsync();
+            // 1. Loại bỏ các Navigation Property khỏi Model Validation để tránh bị ăn lỗi 400
+            ModelState.Remove("Category");
+            ModelState.Remove("Images");
+            ModelState.Remove("Attributes");
+            ModelState.Remove("Variants");
+            ModelState.Remove("CartItems");
+            ModelState.Remove("OrderDetails");
+            ModelState.Remove("Reviews");
 
-            return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                // 2. Kiểm tra danh mục truyền lên có thực sự tồn tại trong Database không
+                var categoryExists = await _context.Categories.AnyAsync(c => c.Id == product.category_id);
+                if (!categoryExists)
+                {
+                    return BadRequest(new { message = $"Mã danh mục {product.category_id} không tồn tại trong CSDL!" });
+                }
+
+                // 3. Đảm bảo đối tượng quan hệ = null để Entity Framework chỉ Insert dữ liệu vào bảng Products
+                product.Category = null;
+
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction("GetProduct", new { id = product.Id }, product);
+            }
+            catch (DbUpdateException ex)
+            {
+                // In ra lỗi cụ thể từ SQL Server nếu chèn thất bại
+                var innerMessage = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                Console.WriteLine($"[SQL ERROR]: {innerMessage}");
+                return StatusCode(500, new { message = "Lỗi CSDL khi chèn sản phẩm!", detail = innerMessage });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[SYSTEM ERROR]: {ex.Message}");
+                return StatusCode(500, new { message = "Lỗi Server!", detail = ex.Message });
+            }
         }
 
         // DELETE: api/Products/5

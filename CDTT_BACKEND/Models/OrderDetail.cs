@@ -19,6 +19,7 @@
         public decimal SubTotal => Quantity * UnitPrice;
 
         // Quan hệ với Order
+        [System.Text.Json.Serialization.JsonIgnore]
         public Order? Order { get; set; }
 
         // Quan hệ với Product

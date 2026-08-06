@@ -121,6 +121,38 @@ namespace TCDTT_BACKEND.Data
 			modelBuilder.Entity<Payment>()
 				.Property(p => p.amount)
 				.HasPrecision(18, 2);
+
+			modelBuilder.Entity<ProductVariant>()
+				.Property(pv => pv.Price)
+				.HasPrecision(18, 2);
+
+			// Product - ProductVariant: 1 - N
+			modelBuilder.Entity<ProductVariant>()
+				.Property(pv => pv.product_id)
+				.HasColumnName("ProductId");
+
+			modelBuilder.Entity<ProductVariant>()
+				.HasOne(pv => pv.Product)
+				.WithMany(p => p.Variants)
+				.HasForeignKey(pv => pv.product_id)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// Product - ProductAttribute: 1 - N
+			modelBuilder.Entity<ProductAttribute>()
+				.HasOne(pa => pa.Product)
+				.WithMany(p => p.Attributes)
+				.HasForeignKey(pa => pa.product_id)
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// ProductVariant - ProductAttributeValue: Many-to-Many
+			modelBuilder.Entity<ProductVariant>()
+				.HasMany(pv => pv.AttributeValues)
+				.WithMany(av => av.ProductVariants)
+				.UsingEntity<Dictionary<string, object>>(
+					"ProductVariantAttributeValue",
+					j => j.HasOne<ProductAttributeValue>().WithMany().HasForeignKey("AttributeValueId").OnDelete(DeleteBehavior.Cascade),
+					j => j.HasOne<ProductVariant>().WithMany().HasForeignKey("ProductVariantId").OnDelete(DeleteBehavior.Restrict)
+				);
 		}
 	    public DbSet<CDTT_BACKEND.Models.Address> Address { get; set; } = default!;
 	    public DbSet<CDTT_BACKEND.Models.ProductAttribute> ProductAttribute { get; set; } = default!;

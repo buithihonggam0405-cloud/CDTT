@@ -27,6 +27,7 @@ namespace CDTT_BACKEND.Models
 
         // Quan hệ Navigation với Order
         [ForeignKey("order_id")]
+        [System.Text.Json.Serialization.JsonIgnore]
         public Order? Order { get; set; }
     }
 }

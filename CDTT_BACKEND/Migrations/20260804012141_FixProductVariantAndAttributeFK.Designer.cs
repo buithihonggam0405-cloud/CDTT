@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TCDTT_BACKEND.Data;
 
@@ -11,9 +12,11 @@ using TCDTT_BACKEND.Data;
 namespace CDTT_BACKEND.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260804012141_FixProductVariantAndAttributeFK")]
+    partial class FixProductVariantAndAttributeFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -350,6 +353,9 @@ namespace CDTT_BACKEND.Migrations
                     b.Property<int>("ProductAttributeId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ProductVariantId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -357,6 +363,8 @@ namespace CDTT_BACKEND.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductAttributeId");
+
+                    b.HasIndex("ProductVariantId");
 
                     b.ToTable("ProductAttributeValue");
                 });
@@ -505,21 +513,6 @@ namespace CDTT_BACKEND.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("ProductVariantAttributeValue", b =>
-                {
-                    b.Property<int>("AttributeValueId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProductVariantId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AttributeValueId", "ProductVariantId");
-
-                    b.HasIndex("ProductVariantId");
-
-                    b.ToTable("ProductVariantAttributeValue");
-                });
-
             modelBuilder.Entity("CDTT_BACKEND.Models.Address", b =>
                 {
                     b.HasOne("CDTT_BACKEND.Models.User", "User")
@@ -647,6 +640,10 @@ namespace CDTT_BACKEND.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CDTT_BACKEND.Models.ProductVariant", null)
+                        .WithMany("AttributeValues")
+                        .HasForeignKey("ProductVariantId");
+
                     b.Navigation("ProductAttribute");
                 });
 
@@ -691,21 +688,6 @@ namespace CDTT_BACKEND.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ProductVariantAttributeValue", b =>
-                {
-                    b.HasOne("CDTT_BACKEND.Models.ProductAttributeValue", null)
-                        .WithMany()
-                        .HasForeignKey("AttributeValueId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CDTT_BACKEND.Models.ProductVariant", null)
-                        .WithMany()
-                        .HasForeignKey("ProductVariantId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CDTT_BACKEND.Models.Cart", b =>
                 {
                     b.Navigation("CartItems");
@@ -741,6 +723,11 @@ namespace CDTT_BACKEND.Migrations
                 });
 
             modelBuilder.Entity("CDTT_BACKEND.Models.ProductAttribute", b =>
+                {
+                    b.Navigation("AttributeValues");
+                });
+
+            modelBuilder.Entity("CDTT_BACKEND.Models.ProductVariant", b =>
                 {
                     b.Navigation("AttributeValues");
                 });

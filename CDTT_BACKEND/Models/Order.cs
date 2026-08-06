@@ -17,6 +17,7 @@
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // User đặt hàng
+        [System.Text.Json.Serialization.JsonIgnore]
         public User? User { get; set; }
 
         // Chi tiết đơn hàng

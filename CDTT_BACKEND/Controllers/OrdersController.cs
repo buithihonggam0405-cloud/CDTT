@@ -25,14 +25,18 @@ namespace CDTT_BACKEND.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
         {
-            return await _context.Orders.ToListAsync();
+            return await _context.Orders
+                .Include(o => o.OrderDetails)
+                .ToListAsync();
         }
 
         // GET: api/Orders/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.OrderDetails)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
             {
@@ -78,6 +82,14 @@ namespace CDTT_BACKEND.Controllers
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(Order order)
         {
+            if (order.OrderDetails != null)
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    detail.Order = null;
+                }
+            }
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 

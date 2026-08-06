@@ -44,15 +44,42 @@ namespace CDTT_BACKEND.Controllers
 
         // PUT: api/ProductVariants/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // PUT: api/ProductVariants/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProductVariant(int id, ProductVariant productVariant)
         {
             if (id != productVariant.Id)
             {
-                return BadRequest();
+                return BadRequest(new { message = "ID không khớp." });
             }
 
-            _context.Entry(productVariant).State = EntityState.Modified;
+            var dbVariant = await _context.ProductVariant
+                .Include(v => v.AttributeValues)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (dbVariant == null)
+            {
+                return NotFound();
+            }
+
+            dbVariant.Sku = productVariant.Sku;
+            dbVariant.Price = productVariant.Price;
+            dbVariant.Quantity = productVariant.Quantity;
+            dbVariant.image_url = productVariant.image_url;
+
+            // Clear old relationships and add updated ones
+            dbVariant.AttributeValues.Clear();
+            if (productVariant.AttributeValues != null && productVariant.AttributeValues.Any())
+            {
+                var valueIds = productVariant.AttributeValues.Select(v => v.Id).ToList();
+                var dbValues = await _context.ProductAttributeValue
+                    .Where(v => valueIds.Contains(v.Id))
+                    .ToListAsync();
+                foreach (var val in dbValues)
+                {
+                    dbVariant.AttributeValues.Add(val);
+                }
+            }
 
             try
             {
@@ -78,6 +105,15 @@ namespace CDTT_BACKEND.Controllers
         [HttpPost]
         public async Task<ActionResult<ProductVariant>> PostProductVariant(ProductVariant productVariant)
         {
+            if (productVariant.AttributeValues != null && productVariant.AttributeValues.Any())
+            {
+                var valueIds = productVariant.AttributeValues.Select(v => v.Id).ToList();
+                var dbValues = await _context.ProductAttributeValue
+                    .Where(v => valueIds.Contains(v.Id))
+                    .ToListAsync();
+                productVariant.AttributeValues = dbValues;
+            }
+
             _context.ProductVariant.Add(productVariant);
             await _context.SaveChangesAsync();
 

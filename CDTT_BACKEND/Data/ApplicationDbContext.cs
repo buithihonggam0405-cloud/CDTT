@@ -29,6 +29,8 @@ namespace TCDTT_BACKEND.Data
 
 		public DbSet<Review> Reviews { get; set; }
 
+		public DbSet<Contact> Contacts { get; set; }
+
 		protected override void OnModelCreating(
 			ModelBuilder modelBuilder)
 		{
@@ -60,6 +62,13 @@ namespace TCDTT_BACKEND.Data
 				.HasOne(ci => ci.Product)
 				.WithMany(p => p.CartItems)
 				.HasForeignKey(ci => ci.ProductId)
+				.OnDelete(DeleteBehavior.Restrict);
+
+			// ProductVariant - CartItem: 1 - N
+			modelBuilder.Entity<CartItem>()
+				.HasOne(ci => ci.ProductVariant)
+				.WithMany()
+				.HasForeignKey(ci => ci.ProductVariantId)
 				.OnDelete(DeleteBehavior.Restrict);
 
 			// User - Order: 1 - N

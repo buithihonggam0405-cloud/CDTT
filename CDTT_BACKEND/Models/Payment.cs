@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CDTT_BACKEND.Models
@@ -27,7 +27,6 @@ namespace CDTT_BACKEND.Models
 
         // Quan hệ Navigation với Order
         [ForeignKey("order_id")]
-        [System.Text.Json.Serialization.JsonIgnore]
         public Order? Order { get; set; }
     }
 }

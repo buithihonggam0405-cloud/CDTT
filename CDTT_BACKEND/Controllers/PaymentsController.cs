@@ -25,7 +25,9 @@ namespace CDTT_BACKEND.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Payment>>> GetPayments()
         {
-            return await _context.Payments.ToListAsync();
+            return await _context.Payments
+                .Include(p => p.Order)
+                .ToListAsync();
         }
 
         // GET: api/Payments/5

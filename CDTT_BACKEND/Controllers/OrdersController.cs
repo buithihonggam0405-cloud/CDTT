@@ -27,6 +27,10 @@ namespace CDTT_BACKEND.Controllers
         {
             return await _context.Orders
                 .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.ProductVariant)
+                        .ThenInclude(pv => pv.AttributeValues)
                 .ToListAsync();
         }
 
@@ -36,6 +40,10 @@ namespace CDTT_BACKEND.Controllers
         {
             var order = await _context.Orders
                 .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.ProductVariant)
+                        .ThenInclude(pv => pv.AttributeValues)
                 .FirstOrDefaultAsync(o => o.Id == id);
 
             if (order == null)

@@ -25,14 +25,14 @@ namespace CDTT_BACKEND.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
         {
-            return await _context.Reviews.ToListAsync();
+            return await _context.Reviews.Include(r => r.User).ToListAsync();
         }
 
         // GET: api/Reviews/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Review>> GetReview(int id)
         {
-            var review = await _context.Reviews.FindAsync(id);
+            var review = await _context.Reviews.Include(r => r.User).FirstOrDefaultAsync(r => r.Id == id);
 
             if (review == null)
             {
